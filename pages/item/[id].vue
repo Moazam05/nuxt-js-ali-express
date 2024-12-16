@@ -1,3 +1,26 @@
+<script setup>
+import { ref, onMounted, watchEffect } from "vue";
+import MainLayout from "~/layouts/MainLayout.vue";
+
+let currentImage = ref("");
+
+onMounted(() => {
+  watchEffect(() => {
+    currentImage.value = "https://picsum.photos/id/144/800/800";
+    images.value[0] = "https://picsum.photos/id/144/800/800";
+  });
+});
+
+const images = ref([
+  "",
+  "https://picsum.photos/id/212/800/800",
+  "https://picsum.photos/id/233/800/800",
+  "https://picsum.photos/id/165/800/800",
+  "https://picsum.photos/id/99/800/800",
+  "https://picsum.photos/id/144/800/800",
+]);
+</script>
+
 <template>
   <MainLayout>
     <div id="ItemPage" class="mt-4 max-w-[1200px] mx-auto px-2">
@@ -103,31 +126,7 @@
   </MainLayout>
 </template>
 
-<script setup>
-import { ref, onMounted, watchEffect } from "vue";
-import MainLayout from "~/layouts/MainLayout.vue";
-
-let currentImage = ref("");
-
-onMounted(() => {
-  watchEffect(() => {
-    currentImage.value = "https://picsum.photos/id/144/800/800";
-    images.value[0] = "https://picsum.photos/id/144/800/800";
-  });
-});
-
-const images = ref([
-  "",
-  "https://picsum.photos/id/212/800/800",
-  "https://picsum.photos/id/233/800/800",
-  "https://picsum.photos/id/165/800/800",
-  "https://picsum.photos/id/99/800/800",
-  "https://picsum.photos/id/144/800/800",
-]);
-</script>
-
 <style scoped>
-/* Adjust styles for better responsiveness */
 @media (max-width: 768px) {
   .flex-row {
     flex-direction: column;
