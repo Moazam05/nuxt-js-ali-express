@@ -9,32 +9,10 @@ const route = useRoute();
 
 // Hooks
 const userStore = useUserStore();
+
 // State
 const currentImage = ref("");
 const product = ref(null);
-
-// <!-- todo: Fetch Single Product API Call -->
-onBeforeMount(async () => {
-  product.value = await useFetch(
-    `/api/prisma/get-product-by-id/${route.params.id}`
-  );
-});
-
-watchEffect(() => {
-  if (product.value && product.value.data) {
-    currentImage.value = product.value.data.url;
-    images.value[0] = product.value.data.url;
-    userStore.isLoading = false;
-  }
-});
-
-const priceComputed = computed(() => {
-  if (product.value && product.value.data) {
-    return product.value.data.price / 100;
-  }
-  return "0.00";
-});
-
 const images = ref([
   "",
   "https://picsum.photos/id/212/800/800",
@@ -44,8 +22,46 @@ const images = ref([
   "https://picsum.photos/id/144/800/800",
 ]);
 
+// Fetch Single Product API Call
+onBeforeMount(async () => {
+  try {
+    const response = await useFetch(
+      `/api/prisma/get-product-by-id/${route.params.id}`
+    );
+    product.value = response;
+  } catch (error) {
+    console.error("Failed to fetch product:", error);
+    userStore.isLoading = false;
+  }
+});
+
+// Watch product changes
+watchEffect(() => {
+  if (product.value?.data) {
+    currentImage.value = product.value.data.url;
+    images.value = [product.value.data.url, ...images.value.slice(1)];
+    userStore.isLoading = false;
+  }
+});
+
+// Computed properties
+const priceComputed = computed(() => {
+  return product.value?.data?.price
+    ? (product.value.data.price / 100).toFixed(2)
+    : "0.00";
+});
+
+const isInCart = computed(() => {
+  return userStore.cart.some((item) => item.id === product.value?.data?.id);
+});
+
+// Add to cart functionality
 const addToCart = () => {
-  userStore.cart.push(product.value.data);
+  if (product.value?.data) {
+    userStore.cart.push(product.value.data);
+  } else {
+    console.error("Cannot add to cart: Product data is missing");
+  }
 };
 </script>
 
@@ -53,6 +69,7 @@ const addToCart = () => {
   <MainLayout>
     <div id="ItemPage" class="mt-4 max-w-[1200px] mx-auto px-2">
       <div class="md:flex gap-4 justify-between mx-auto w-full">
+        <!-- Product Images -->
         <div class="md:w-[40%]">
           <img
             v-if="currentImage"
@@ -63,7 +80,7 @@ const addToCart = () => {
             v-if="images[0] !== ''"
             class="flex items-center justify-center mt-2"
           >
-            <div v-for="image in images">
+            <div v-for="(image, index) in images" :key="index">
               <img
                 @mouseover="currentImage = image"
                 @click="currentImage = image"
@@ -75,14 +92,17 @@ const addToCart = () => {
             </div>
           </div>
         </div>
+
+        <!-- Product Details -->
         <div class="md:w-[60%] bg-white p-3 rounded-lg">
-          <div v-if="product && product.data">
+          <div v-if="product?.data">
             <p class="mb-2">{{ product.data.title }}</p>
             <p class="font-light text-[12px] mb-2">
               {{ product.data.description }}
             </p>
           </div>
 
+          <!-- Product Offer -->
           <div class="flex items-center pt-1.5">
             <span class="h-4 min-w-4 rounded-full p-0.5 bg-[#FFD000] mr-2">
               <Icon
@@ -94,19 +114,21 @@ const addToCart = () => {
             <p class="text-[#FF5353]">Extra 5% off</p>
           </div>
 
+          <!-- Ratings -->
           <div class="flex items-center justify-start my-2">
             <Icon name="ic:baseline-star" color="#FF5353" />
             <Icon name="ic:baseline-star" color="#FF5353" />
             <Icon name="ic:baseline-star" color="#FF5353" />
             <Icon name="ic:baseline-star" color="#FF5353" />
             <Icon name="ic:baseline-star" color="#FF5353" />
-            <span class="text-[13px] font-light ml-2"
-              >5 213 Reviews 1,000+ orders</span
-            >
+            <span class="text-[13px] font-light ml-2">
+              213 Reviews 1,000+ orders
+            </span>
           </div>
 
           <div class="border-b" />
 
+          <!-- Price and Discount -->
           <div class="flex items-center justify-start gap-2 my-2">
             <div class="text-xl font-bold">$ {{ priceComputed }}</div>
             <span
@@ -123,6 +145,7 @@ const addToCart = () => {
 
           <div class="py-2" />
 
+          <!-- Add to Cart Button -->
           <button
             @click="addToCart()"
             :disabled="isInCart"
