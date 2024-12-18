@@ -5,6 +5,7 @@ import { useUserStore } from "~/stores/user";
 import MainLayout from "~/layouts/MainLayout.vue";
 
 const userStore = useUserStore();
+const user = useSupabaseUser();
 let selectedArray = ref([]);
 
 onMounted(() => {
@@ -49,30 +50,16 @@ const goToCheckout = () => {
   return navigateTo("/checkout");
 };
 
-const products = [
-  {
-    id: 1,
-    title: "Product 1",
-    description: "Description 1",
-    url: "https://via.placeholder.com/150",
-    price: 100,
-  },
-  {
-    id: 2,
-    title: "Product 2",
-    description: "Description 2",
-    url: "https://via.placeholder.com/150",
-    price: 200,
-  },
-];
-
 const cards = ref(["visa.png", "mastercard.png", "paypal.png", "applepay.png"]);
 </script>
 
 <template>
   <MainLayout>
     <div id="ShoppingCartPage" class="mt-4 max-w-[1200px] mx-auto px-2">
-      <div v-if="false" class="h-[500px] flex items-center justify-center">
+      <div
+        v-if="!userStore.cart.length"
+        class="h-[500px] flex items-center justify-center"
+      >
         <div class="pt-20">
           <img class="mx-auto" width="250" src="/cart-empty.png" />
 
@@ -88,12 +75,12 @@ const cards = ref(["visa.png", "mastercard.png", "paypal.png", "applepay.png"]);
           </div>
         </div>
       </div>
-      <!--  -->
+
       <div v-else class="md:flex gap-4 justify-between mx-auto w-full">
         <div class="md:w-[65%]">
           <div class="bg-white rounded-lg p-4">
             <div class="text-2xl font-bold mb-2">
-              Shopping Cart ({{ userStore?.cart?.length || 0 }})
+              Shopping Cart ({{ userStore.cart.length }})
             </div>
           </div>
 
@@ -104,7 +91,7 @@ const cards = ref(["visa.png", "mastercard.png", "paypal.png", "applepay.png"]);
           </div>
 
           <div id="Items" class="bg-white rounded-lg p-4 mt-4">
-            <div v-for="product in products">
+            <div v-for="product in userStore.cart">
               <CartItem
                 :product="product"
                 :selectedArray="selectedArray"
@@ -153,5 +140,3 @@ const cards = ref(["visa.png", "mastercard.png", "paypal.png", "applepay.png"]);
     </div>
   </MainLayout>
 </template>
-
-<style scoped></style>
