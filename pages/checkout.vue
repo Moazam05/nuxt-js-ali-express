@@ -4,17 +4,43 @@ import { useRoute } from "vue-router";
 
 import MainLayout from "~/layouts/MainLayout.vue";
 import { useUserStore } from "~/stores/user";
+
 const userStore = useUserStore();
+const user = useSupabaseUser();
 const route = useRoute();
 
-const stripe = null;
-const elements = null;
-const card = null;
-const form = null;
-const total = ref(0);
-const clientSecret = null;
-const currentAddress = ref(null);
-const isProcessing = ref(false);
+let stripe = null;
+let elements = null;
+let card = null;
+let form = null;
+let clientSecret = null;
+let total = ref(0);
+let currentAddress = ref(null);
+let isProcessing = ref(false);
+
+onBeforeMount(async () => {
+  if (userStore.checkout.length < 1) {
+    return navigateTo("/shoppingcart");
+  }
+
+  total.value = 0.0;
+
+  if (user.value) {
+    currentAddress.value = await useFetch(
+      `/api/prisma/get-address-by-user/${user.value.id}`
+    );
+
+    setTimeout(() => {
+      userStore.isLoading = false;
+    }, 200);
+  }
+});
+
+watchEffect(() => {
+  if (route.fullPath === "/checkout" && !user.value) {
+    return navigateTo("/auth");
+  }
+});
 
 onMounted(async () => {
   isProcessing.value = true;

@@ -3,9 +3,9 @@ const client = useSupabaseClient();
 const user = useSupabaseUser();
 
 watchEffect(() => {
-  // if (user.value) {
-  //   return navigateTo("/");
-  // }
+  if (user.value) {
+    return navigateTo("/");
+  }
 });
 
 const login = async (prov) => {
