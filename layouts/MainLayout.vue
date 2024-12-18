@@ -4,12 +4,36 @@ import { ref } from "vue";
 import { useUserStore } from "~/stores/user";
 
 const userStore = useUserStore();
+const client = useSupabaseClient();
+const user = useSupabaseUser();
 
-const isAccountMenu = ref(false);
-const searchItem = ref("");
-const isSearching = ref(false);
-const isCartHover = ref(false);
-const items = ref(null);
+let isAccountMenu = ref(false);
+let isCartHover = ref(false);
+let isSearching = ref(false);
+let searchItem = ref("");
+let items = ref(null);
+
+const searchByName = useDebounce(async () => {
+  isSearching.value = true;
+  items.value = await useFetch(
+    `/api/prisma/search-by-name/${searchItem.value}`
+  );
+  isSearching.value = false;
+}, 100);
+
+watch(
+  () => searchItem.value,
+  async () => {
+    if (!searchItem.value) {
+      setTimeout(() => {
+        items.value = "";
+        isSearching.value = false;
+        return;
+      }, 500);
+    }
+    searchByName();
+  }
+);
 </script>
 
 <template>
@@ -42,7 +66,6 @@ const items = ref(null);
           <Icon name="ic:sharp-install-mobile" size="17" />
           App
         </li>
-
         <li
           @mouseenter="isAccountMenu = true"
           @mouseleave="isAccountMenu = false"
@@ -75,9 +98,7 @@ const items = ref(null);
                 </NuxtLink>
               </div>
             </div>
-
             <div class="border-b" />
-
             <ul class="bg-white">
               <li
                 @click="navigateTo('/orders')"
@@ -86,7 +107,7 @@ const items = ref(null);
                 My Orders
               </li>
               <li
-                v-if="true"
+                v-if="user"
                 @click="client.auth.signOut()"
                 class="text-[13px] py-2 px-4 w-full hover:bg-gray-200"
               >
@@ -97,9 +118,6 @@ const items = ref(null);
         </li>
       </ul>
     </div>
-
-    <!-- Main Header -->
-
     <div id="MainHeader" class="flex items-center w-full bg-white">
       <div
         class="flex lg:justify-start justify-between gap-10 max-w-[1150px] w-full px-3 py-5 mx-auto"
@@ -153,7 +171,6 @@ const items = ref(null);
           </div>
         </div>
 
-        <!--  -->
         <NuxtLink to="/shoppingcart" class="flex items-center">
           <button
             class="relative md:block hidden"
@@ -161,15 +178,15 @@ const items = ref(null);
             @mouseleave="isCartHover = false"
           >
             <span
-              class="absolute z-10 flex items-center justify-center -right-[3px] top-0 bg-[#FF4646] h-[17px] min-w-[17px] text-xs text-white px-0.5 rounded-full"
+              class="absolute flex items-center justify-center -right-[3px] top-0 bg-[#FF4646] h-[17px] min-w-[17px] text-xs text-white px-0.5 rounded-full"
             >
-              {{ userStore?.cart?.length || 0 }}
+              {{ userStore.cart.length }}
             </span>
             <div class="min-w-[40px]">
               <Icon
                 name="ph:shopping-cart-simple-light"
                 size="33"
-                :class="isCartHover ? 'text-[#FF4646]' : ''"
+                :color="isCartHover ? '#FF4646' : ''"
               />
             </div>
           </button>
