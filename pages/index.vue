@@ -1,22 +1,20 @@
 <script setup lang="ts">
-import MainLayout from "~/layouts/MainLayout.vue";
+import { ref } from "vue";
 
-const products = [
-  {
-    id: 1,
-    title: "Product 1",
-    description: "Description 1",
-    url: "https://via.placeholder.com/150",
-    price: 100,
-  },
-  {
-    id: 2,
-    title: "Product 2",
-    description: "Description 2",
-    url: "https://via.placeholder.com/150",
-    price: 200,
-  },
-];
+import MainLayout from "~/layouts/MainLayout.vue";
+import { useUserStore } from "~/stores/user";
+
+const userStore = useUserStore();
+
+let products = ref(null);
+
+onBeforeMount(async () => {
+  products.value = await useFetch("/api/prisma/get-all-products");
+
+  setTimeout(() => {
+    userStore.isLoading = false;
+  }, 1000);
+});
 </script>
 
 <template>
@@ -25,7 +23,7 @@ const products = [
       <div
         class="grid xl:grid-cols-6 lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-4"
       >
-        <div v-if="products" v-for="product in products" :key="product">
+        <div v-if="products" v-for="product in products.data" :key="product">
           <ProductComponent :product="product" />
         </div>
       </div>
