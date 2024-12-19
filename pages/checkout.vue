@@ -1,8 +1,9 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeMount, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 import MainLayout from "~/layouts/MainLayout.vue";
 import { useUserStore } from "~/stores/user";
+
 const userStore = useUserStore();
 const user = useSupabaseUser();
 const route = useRoute();
@@ -39,59 +40,76 @@ watchEffect(() => {
 onMounted(async () => {
   isProcessing.value = true;
 
+  // Calculate total amount
   userStore.checkout.forEach((item) => {
     total.value += item.price;
   });
-});
 
-watch(
-  () => total.value,
-  () => {
-    if (total.value > 0) {
-      stripeInit();
-    }
+  // Trigger Stripe initialization if total is greater than 0
+  if (total.value > 0) {
+    stripeInit();
   }
-);
+});
 
 const stripeInit = async () => {
   const runtimeConfig = useRuntimeConfig();
-  stripe = Stripe(runtimeConfig.stripePk);
+  stripe = Stripe(runtimeConfig.public.stripePk);
 
-  let res = await $fetch("/api/stripe/paymentintent", {
-    method: "POST",
-    body: {
-      amount: total.value,
-    },
-  });
-  clientSecret = res.client_secret;
+  if (!stripe) {
+    console.error("Stripe not initialized. Check your public key.");
+    return;
+  }
 
-  elements = stripe.elements();
-  var style = {
-    base: {
-      fontSize: "18px",
-    },
-    invalid: {
-      fontFamily: "Arial, sans-serif",
-      color: "#EE4B2B",
-      iconColor: "#EE4B2B",
-    },
-  };
-  card = elements.create("card", {
-    hidePostalCode: true,
-    style: style,
-  });
+  try {
+    let res = await $fetch("/api/stripe/paymentintent", {
+      method: "POST",
+      body: { amount: total.value },
+    });
 
-  // Stripe injects an iframe into the DOM
-  card.mount("#card-element");
-  card.on("change", function (event) {
-    // Disable the Pay button if there are no card details in the Element
-    document.querySelector("button").disabled = event.empty;
-    document.querySelector("#card-error").textContent = event.error
-      ? event.error.message
-      : "";
-  });
+    clientSecret = res.client_secret;
 
-  isProcessing.value = false;
+    if (!clientSecret) {
+      console.error("Client Secret not received. Check your API endpoint.");
+      return;
+    }
+
+    elements = stripe.elements();
+
+    var style = {
+      base: {
+        fontSize: "18px",
+      },
+      invalid: {
+        fontFamily: "Arial, sans-serif",
+        color: "#EE4B2B",
+        iconColor: "#EE4B2B",
+      },
+    };
+
+    card = elements.create("card", {
+      hidePostalCode: true,
+      style: style,
+    });
+
+    if (!card) {
+      console.error("Card element not created.");
+      return;
+    }
+
+    // Mount card element
+    card.mount("#card-element");
+    card.on("change", (event) => {
+      document.querySelector("button").disabled = event.empty;
+      document.querySelector("#card-error").textContent = event.error
+        ? event.error.message
+        : "";
+    });
+
+    isProcessing.value = false;
+  } catch (error) {
+    console.error("Error during Stripe initialization:", error);
+    isProcessing.value = false;
+  }
 };
 
 const pay = async () => {
@@ -101,37 +119,47 @@ const pay = async () => {
   }
   isProcessing.value = true;
 
-  let result = await stripe.confirmCardPayment(clientSecret, {
-    payment_method: { card: card },
-  });
+  try {
+    let result = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: { card: card },
+    });
 
-  if (result.error) {
-    showError(result.error.message);
+    if (result.error) {
+      showError(result.error.message);
+      isProcessing.value = false;
+    } else {
+      await createOrder(result.paymentIntent.id);
+      userStore.cart = [];
+      userStore.checkout = [];
+      setTimeout(() => {
+        return navigateTo("/success");
+      }, 500);
+    }
+  } catch (error) {
+    console.error("Error during payment:", error);
+    showError("An error occurred. Please try again.");
     isProcessing.value = false;
-  } else {
-    await createOrder(result.paymentIntent.id);
-    userStore.cart = [];
-    userStore.checkout = [];
-    setTimeout(() => {
-      return navigateTo("/success");
-    }, 500);
   }
 };
 
 const createOrder = async (stripeId) => {
-  await useFetch("/api/prisma/create-order", {
-    method: "POST",
-    body: {
-      userId: user.value.id,
-      stripeId: stripeId,
-      name: currentAddress.value.data.name,
-      address: currentAddress.value.data.address,
-      zipCode: currentAddress.value.data.zipCode,
-      city: currentAddress.value.data.city,
-      country: currentAddress.value.data.country,
-      products: userStore.checkout,
-    },
-  });
+  try {
+    await useFetch("/api/prisma/create-order", {
+      method: "POST",
+      body: {
+        userId: user.value.id,
+        stripeId: stripeId,
+        name: currentAddress.value.data.name,
+        address: currentAddress.value.data.address,
+        zipCode: currentAddress.value.data.zipCode,
+        city: currentAddress.value.data.city,
+        country: currentAddress.value.data.country,
+        products: userStore.checkout,
+      },
+    });
+  } catch (error) {
+    console.error("Error creating order:", error);
+  }
 };
 
 const showError = (errorMsgText) => {
