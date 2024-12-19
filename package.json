@@ -15,7 +15,7 @@
   "dependencies": {
     "@nuxtjs/supabase": "^1.4.4",
     "@nuxtjs/tailwindcss": "^6.12.2",
-    "@pinia/nuxt": "^0.9.0",
+    "@pinia/nuxt": "^0.5.5",
     "@prisma/client": "^6.0.1",
     "@stripe/stripe-js": "^5.2.0",
     "dotenv": "^16.4.7",
