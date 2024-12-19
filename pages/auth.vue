@@ -3,7 +3,7 @@ const client = useSupabaseClient();
 const user = useSupabaseUser();
 
 let redirectUrl = "";
-if (process) {
+if (process.client) {
   redirectUrl =
     process.env.NODE_ENV === "production"
       ? "https://nuxtjs-ali-express.netlify.app"
