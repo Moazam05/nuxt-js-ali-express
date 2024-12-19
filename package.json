@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt build",
-    "dev": "clear && nuxt dev --port 3000",
+    "build": "nuxt build --openssl-legacy-provider",
+    "dev": "clear && nuxt dev --openssl-legacy-provider --port 3000",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
