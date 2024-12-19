@@ -2,6 +2,14 @@
 const client = useSupabaseClient();
 const user = useSupabaseUser();
 
+let redirectUrl = "";
+if (process) {
+  redirectUrl =
+    process.env.NODE_ENV === "production"
+      ? "https://nuxtjs-ali-express.netlify.app"
+      : window.location.origin;
+}
+
 watchEffect(() => {
   if (user.value) {
     return navigateTo("/");
@@ -11,7 +19,7 @@ watchEffect(() => {
 const login = async (prov) => {
   const { data, error } = await client.auth.signInWithOAuth({
     provider: prov,
-    redirectTo: window.location.origin,
+    redirectTo: redirectUrl,
   });
 };
 </script>
