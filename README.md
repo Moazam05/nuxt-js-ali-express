@@ -1,4 +1,4 @@
-# Nuxt App
+# Ali Express App
 
 Nuxt App is a modern web application built with **Nuxt.js 3** and the **Composition API**, featuring a robust stack of tools for building scalable and efficient web applications. This project includes authentication, state management, database integration, and more.
 
