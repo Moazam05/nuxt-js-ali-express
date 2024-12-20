@@ -1,75 +1,71 @@
-# Nuxt Minimal Starter
+# Nuxt App
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Nuxt App is a modern web application built with **Nuxt.js 3** and the **Composition API**, featuring a robust stack of tools for building scalable and efficient web applications. This project includes authentication, state management, database integration, and more.
 
-## Setup
+## Features
 
-Make sure to install dependencies:
+### 1. **Nuxt 3 with Composition API**
+- Utilizes the power of the Composition API for better code organization and reusability.
 
-```bash
-# npm
-npm install
+### 2. **State Management with Pinia**
+- State is managed with Pinia, along with support for persisted states.
 
-# pnpm
-pnpm install
+### 3. **Database Integration**
+- Prisma is used as an ORM for seamless database interactions.
 
-# yarn
-yarn install
+### 4. **Authentication**
+- Authentication is handled using the **@nuxtjs/supabase** module.
 
-# bun
-bun install
-```
+### 5. **Payment Integration**
+- Stripe is integrated for managing payments.
 
-## Development Server
+### 6. **Responsive UI**
+- Tailwind CSS is used for building a responsive and modern user interface.
 
-Start the development server on `http://localhost:3000`:
+### 7. **Icon Support**
+- Includes Nuxt Icon for streamlined icon management.
 
-```bash
-# npm
-npm run dev
+### 8. **Utility Functions**
+- Lodash is included for enhanced utility support.
 
-# pnpm
-pnpm dev
+## Installation
 
-# yarn
-yarn dev
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/nuxt-app.git
+   cd nuxt-app
+   ```
 
-# bun
-bun run dev
-```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-## Production
+3. Set up the environment variables:
+   - Create a `.env` file in the root directory.
+   - Add your environment variables (e.g. STRIPE_PK_KEY, STRIPE_PK_KEY, SUPABASE_URL, SUPABASE_KEY, DATABASE_URL).
 
-Build the application for production:
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-```bash
-# npm
-npm run build
+## Scripts
 
-# pnpm
-pnpm build
+- `dev`: Start the development server.
+- `build`: Build the application for production.
+- `generate`: Generate a static version of the app.
+- `preview`: Preview the production build.
+- `postinstall`: Prepare the Nuxt project after dependencies are installed.
+- `seed`: Seed the database using Prisma.
 
-# yarn
-yarn build
+## Tech Stack
 
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+- **Nuxt.js 3**: The core framework
+- **Composition API**: For scalable and maintainable code
+- **Pinia**: State management library
+- **Prisma**: ORM for database operations
+- **Supabase**: Backend-as-a-Service for authentication and database
+- **Stripe**: Payment processing
+- **Tailwind CSS**: For styling
+- **Lodash**: Utility functions
